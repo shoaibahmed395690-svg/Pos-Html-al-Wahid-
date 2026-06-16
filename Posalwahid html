@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Al Wahid Paint Shop - POS</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: 'Segoe UI', sans-serif; background: #f0f2f5; color: #222; }
+
+  /* NAV */
+  nav { background: #1a1a2e; color: #fff; display: flex; align-items: center; padding: 0 20px; height: 56px; gap: 8px; }
+  nav h1 { font-size: 18px; font-weight: 700; flex: 1; }
+  nav span { font-size: 12px; opacity: .6; }
+  .nav-tabs { display: flex; gap: 4px; }
+  .nav-tabs button { background: transparent; border: none; color: #aaa; padding: 6px 14px; border-radius: 6px; cursor: pointer; font-size: 13px; transition: .2s; }
+  .nav-tabs button.active, .nav-tabs button:hover { background: #e94560; color: #fff; }
+
+  /* PAGES */
+  .page { display: none; padding: 20px; max-width: 1100px; margin: 0 auto; }
+  .page.active { display: block; }
+
+  /* CARD */
+  .card { background: #fff; border-radius: 12px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,.07); margin-bottom: 16px; }
+  .card h2 { font-size: 16px; font-weight: 600; margin-bottom: 14px; color: #1a1a2e; border-bottom: 2px solid #e94560; padding-bottom: 6px; display: inline-block; }
+
+  /* GRID */
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+
+  /* FORM */
+  label { font-size: 12px; font-weight: 600; color: #555; display: block; margin-bottom: 4px; }
+  input, select, textarea { width: 100%; padding: 9px 12px; border: 1.5px solid #ddd; border-radius: 8px; font-size: 14px; outline: none; transition: .2s; }
+  input:focus, select:focus { border-color: #e94560; }
+  textarea { resize: vertical; min-height: 60px; }
+
+  /* BUTTON */
+  .btn { padding: 9px 20px; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; font-weight: 600; transition: .2s; }
+  .btn-primary { background: #e94560; color: #fff; }
+  .btn-primary:hover { background: #c73652; }
+  .btn-success { background: #27ae60; color: #fff; }
+  .btn-success:hover { background: #1e8449; }
+  .btn-warning { background: #f39c12; color: #fff; }
+  .btn-warning:hover { background: #d68910; }
+  .btn-danger { background: #e74c3c; color: #fff; }
+  .btn-danger:hover { background: #c0392b; }
+  .btn-sm { padding: 5px 12px; font-size: 12px; }
+  .btn-outline { background: transparent; border: 1.5px solid #e94560; color: #e94560; }
+
+  /* TABLE */
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th { background: #1a1a2e; color: #fff; padding: 10px 12px; text-align: left; }
+  td { padding: 9px 12px; border-bottom: 1px solid #f0f2f5; }
+  tr:hover td { background: #fef9f9; }
+  .badge { padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; }
+  .badge-green { background: #d5f5e3; color: #1e8449; }
+  .badge-red { background: #fde8e7; color: #c0392b; }
+  .badge-orange { background: #fef0e0; color: #d35400; }
+
+  /* STAT CARDS */
+  .stat { background: #fff; border-radius: 12px; padding: 18px 20px; box-shadow: 0 2px 8px rgba(0,0,0,.07); display: flex; flex-direction: column; gap: 4px; }
+  .stat .num { font-size: 28px; font-weight: 700; color: #e94560; }
+  .stat .lbl { font-size: 12px; color: #888; }
+
+  /* SALE PANEL */
+  #sale-items-table th { font-size: 12px; }
+  .qty-ctrl { display: flex; align-items: center; gap: 6px; }
+  .qty-ctrl button { width: 26px; height: 26px; border-radius: 6px; border: none; font-size: 16px; cursor: pointer; font-weight: 700; background: #f0f2f5; }
+  .qty-ctrl span { min-width: 28px; text-align: center; font-weight: 600; }
+  #sale-total-box { background: #1a1a2e; color: #fff; border-radius: 10px; padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; }
+  #sale-total-box .total-num { font-size: 26px; font-weight: 700; color: #e94560; }
+
+  /* LOW STOCK */
+  .low { color: #e74c3c; font-weight: 700; }
+
+  /* PRINT */
+  @media print {
+    body * { visibility: hidden; }
+    #print-area, #print-area * { visibility: visible; }
+    #print-area { position: fixed; top: 0; left: 0; width: 80mm; font-family: monospace; }
+  }
+  #print-area { display: none; }
+
+  /* MODAL */
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.5); z-index: 999; align-items: center; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal-box { background: #fff; border-radius: 14px; padding: 24px; width: 420px; max-width: 95vw; }
+  .modal-box h3 { margin-bottom: 14px; color: #1a1a2e; }
+
+  .flex { display: flex; gap: 10px; align-items: flex-end; }
+  .flex-end { display: flex; justify-content: flex-end; gap: 8px; }
+  .mt { margin-top: 12px; }
+  .search-bar { position: relative; }
+  .search-bar input { padding-left: 36px; }
+  .search-bar::before { content: "🔍"; position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 14px; }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <h1>🎨 Al Wahid Paint Shop</h1>
+  <span>Zail Pak Colony, Gate Shop #3 | Hyderabad</span>
+  <div class="nav-tabs" style="margin-left:20px">
+    <button class="active" onclick="showPage('sale')">🧾 Sale</button>
+    <button onclick="showPage('inventory')">📦 Inventory</button>
+    <button onclick="showPage('udhaar')">💳 Udhaar</button>
+    <button onclick="showPage('report')">📊 Reports</button>
+  </div>
+</nav>
+
+<!-- ==================== SALE PAGE ==================== -->
+<div id="page-sale" class="page active">
+  <div class="grid2" style="align-items:start">
+
+    <!-- LEFT: Add items -->
+    <div>
+      <div class="card">
+        <h2>New Sale</h2>
+        <div class="flex" style="margin-bottom:10px">
+          <div style="flex:1">
+            <label>Search Product</label>
+            <div class="search-bar">
+              <input id="prod-search" type="text" placeholder="Type product name..." oninput="searchProducts(this.value)">
+            </div>
+            <div id="prod-dropdown" style="display:none;background:#fff;border:1.5px solid #ddd;border-radius:8px;margin-top:4px;max-height:180px;overflow-y:auto;position:relative;z-index:10;"></div>
+          </div>
+        </div>
+        <div class="card" style="background:#fafafa;padding:14px">
+          <table id="sale-items-table">
+            <thead><tr><th>Product</th><th>Qty</th><th>Price</th><th>Total</th><th></th></tr></thead>
+            <tbody id="sale-tbody"></tbody>
+          </table>
+          <p id="empty-msg" style="text-align:center;color:#aaa;padding:20px;font-size:13px">No items added yet</p>
+        </div>
+        <div id="sale-total-box" class="mt">
+          <div>
+            <div style="font-size:13px;opacity:.7">Grand Total</div>
+            <div class="total-num">Rs. <span id="grand-total">0</span></div>
+          </div>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-outline" onclick="clearSale()" style="color:#fff;border-color:#fff">Clear</button>
+            <button class="btn btn-success" onclick="openCheckout()">Checkout ✓</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT: Recent bills -->
+    <div>
+      <div class="card">
+        <h2>Today's Bills</h2>
+        <table>
+          <thead><tr><th>#</th><th>Customer</th><th>Amount</th><th>Type</th><th></th></tr></thead>
+          <tbody id="bills-tbody"></tbody>
+        </table>
+        <p id="bills-empty" style="text-align:center;color:#aaa;padding:16px;font-size:13px">No bills today</p>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ==================== INVENTORY PAGE ==================== -->
+<div id="page-inventory" class="page">
+  <div class="card">
+    <h2>Add / Edit Products</h2>
+    <div class="grid3">
+      <div><label>Product Name</label><input id="inv-name" placeholder="e.g. Asian Paint 1L White"></div>
+      <div><label>Category</label>
+        <select id="inv-cat">
+          <option>Paint</option><option>Thinner</option><option>Brush</option><option>Putty</option><option>Primer</option><option>Other</option>
+        </select>
+      </div>
+      <div><label>Unit</label>
+        <select id="inv-unit"><option>Tin</option><option>Liter</option><option>Piece</option><option>Box</option><option>Kg</option></select>
+      </div>
+      <div><label>Purchase Price (Rs)</label><input id="inv-buy" type="number" placeholder="0"></div>
+      <div><label>Sale Price (Rs)</label><input id="inv-sell" type="number" placeholder="0"></div>
+      <div><label>Stock Qty</label><input id="inv-qty" type="number" placeholder="0"></div>
+    </div>
+    <div class="mt" style="display:flex;gap:8px">
+      <button class="btn btn-primary" onclick="saveProduct()">💾 Save Product</button>
+      <button class="btn btn-outline" onclick="clearInvForm()">Clear</button>
+    </div>
+  </div>
+
+  <div class="card">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+      <h2 style="border:none;padding:0;margin:0">Stock List</h2>
+      <div class="search-bar" style="width:220px">
+        <input type="text" placeholder="Search..." oninput="filterInventory(this.value)">
+      </div>
+    </div>
+    <table>
+      <thead><tr><th>#</th><th>Product</th><th>Cat</th><th>Unit</th><th>Buy</th><th>Sell</th><th>Stock</th><th>Action</th></tr></thead>
+      <tbody id="inv-tbody"></tbody>
+    </table>
+    <p id="inv-empty" style="text-align:center;color:#aaa;padding:16px;font-size:13px">No products added</p>
+  </div>
+</div>
+
+<!-- ==================== UDHAAR PAGE ==================== -->
+<div id="page-udhaar" class="page">
+  <div class="grid2" style="align-items:start">
+    <div class="card">
+      <h2>Add Customer / Credit</h2>
+      <div><label>Customer Name</label><input id="ud-name" placeholder="Customer name"></div>
+      <div class="mt"><label>Phone</label><input id="ud-phone" placeholder="03xx-xxxxxxx"></div>
+      <div class="mt"><label>Amount (Rs)</label><input id="ud-amt" type="number" placeholder="0"></div>
+      <div class="mt"><label>Note</label><textarea id="ud-note" placeholder="Bill detail or note..."></textarea></div>
+      <div class="mt flex-end">
+        <button class="btn btn-primary" onclick="addUdhaar()">➕ Add Udhaar</button>
+      </div>
+    </div>
+    <div class="card">
+      <h2>Udhaar Summary</h2>
+      <div class="grid2" style="margin-bottom:12px">
+        <div class="stat"><div class="num" id="ud-total-customers">0</div><div class="lbl">Customers on Credit</div></div>
+        <div class="stat"><div class="num" id="ud-total-due" style="color:#e74c3c">Rs. 0</div><div class="lbl">Total Due</div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <h2>Credit Ledger</h2>
+    <table>
+      <thead><tr><th>#</th><th>Customer</th><th>Phone</th><th>Due (Rs)</th><th>Last Entry</th><th>Action</th></tr></thead>
+      <tbody id="ud-tbody"></tbody>
+    </table>
+    <p id="ud-empty" style="text-align:center;color:#aaa;padding:16px;font-size:13px">No credit records</p>
+  </div>
+</div>
+
+<!-- ==================== REPORTS PAGE ==================== -->
+<div id="page-report" class="page">
+  <div class="grid3">
+    <div class="stat"><div class="num" id="r-today-sales">Rs. 0</div><div class="lbl">Today's Sales</div></div>
+    <div class="stat"><div class="num" id="r-today-bills">0</div><div class="lbl">Bills Today</div></div>
+    <div class="stat"><div class="num" id="r-total-profit" style="color:#27ae60">Rs. 0</div><div class="lbl">Estimated Profit Today</div></div>
+  </div>
+
+  <div class="card mt">
+    <h2>Today's Transactions</h2>
+    <table>
+      <thead><tr><th>Time</th><th>Bill#</th><th>Customer</th><th>Items</th><th>Amount</th><th>Type</th></tr></thead>
+      <tbody id="rep-tbody"></tbody>
+    </table>
+    <p id="rep-empty" style="text-align:center;color:#aaa;padding:16px;font-size:13px">No transactions today</p>
+  </div>
+
+  <div class="card">
+    <h2>Low Stock Alert 🔴</h2>
+    <table>
+      <thead><tr><th>Product</th><th>Category</th><th>Stock Left</th></tr></thead>
+      <tbody id="low-stock-tbody"></tbody>
+    </table>
+    <p id="low-empty" style="text-align:center;color:#aaa;padding:16px;font-size:13px">All stock levels OK ✅</p>
+  </div>
+</div>
+
+<!-- ==================== CHECKOUT MODAL ==================== -->
+<div class="modal-overlay" id="checkout-modal">
+  <div class="modal-box">
+    <h3>🧾 Complete Sale</h3>
+    <div><label>Customer Name</label><input id="ck-name" placeholder="Walk-in Customer"></div>
+    <div class="mt"><label>Phone (optional)</label><input id="ck-phone" placeholder="03xx-xxxxxxx"></div>
+    <div class="mt"><label>Payment Type</label>
+      <select id="ck-type">
+        <option value="Cash">Cash</option>
+        <option value="Udhaar">Udhaar (Credit)</option>
+        <option value="Online">Online Transfer</option>
+      </select>
+    </div>
+    <div class="mt" style="background:#f0f2f5;border-radius:8px;padding:12px;text-align:center">
+      <div style="font-size:13px;color:#888">Bill Total</div>
+      <div style="font-size:28px;font-weight:700;color:#e94560">Rs. <span id="ck-total">0</span></div>
+    </div>
+    <div class="mt flex-end">
+      <button class="btn btn-outline" onclick="closeModal('checkout-modal')">Cancel</button>
+      <button class="btn btn-warning" onclick="completeSale(true)">💾 Save Only</button>
+      <button class="btn btn-success" onclick="completeSale(false)">🖨️ Save & Print</button>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== UDHAAR DETAIL MODAL ==================== -->
+<div class="modal-overlay" id="ud-detail-modal">
+  <div class="modal-box" style="width:500px">
+    <h3 id="ud-detail-name">Customer Ledger</h3>
+    <table style="margin-bottom:12px">
+      <thead><tr><th>Date</th><th>Note</th><th>Amount</th><th>Status</th></tr></thead>
+      <tbody id="ud-detail-tbody"></tbody>
+    </table>
+    <div style="background:#fde8e7;border-radius:8px;padding:10px;text-align:center;margin-bottom:12px">
+      <span style="font-size:13px;color:#888">Total Due: </span>
+      <span id="ud-detail-due" style="font-size:20px;font-weight:700;color:#e74c3c">Rs. 0</span>
+    </div>
+    <div class="flex">
+      <input id="ud-pay-amt" type="number" placeholder="Enter payment amount">
+      <button class="btn btn-success" onclick="recordPayment()">✔ Mark Paid</button>
+    </div>
+    <div class="mt flex-end">
+      <button class="btn btn-outline" onclick="closeModal('ud-detail-modal')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRINT AREA -->
+<div id="print-area"></div>
+
+<script>
+// ========== DATA ==========
+let products = JSON.parse(localStorage.getItem('awp_products') || '[]');
+let bills = JSON.parse(localStorage.getItem('awp_bills') || '[]');
+let udhaarList = JSON.parse(localStorage.getItem('awp_udhaar') || '[]');
+let saleCart = [];
+let editProductId = null;
+let activeUdhaarId = null;
+
+// ========== HELPERS ==========
+function save() {
+  localStorage.setItem('awp_products', JSON.stringify(products));
+  localStorage.setItem('awp_bills', JSON.stringify(bills));
+  localStorage.setItem('awp_udhaar', JSON.stringify(udhaarList));
+}
+function genId() { return Date.now() + Math.random().toString(36).slice(2,6); }
+function today() { return new Date().toLocaleDateString('en-PK'); }
+function now() { return new Date().toLocaleTimeString('en-PK', {hour:'2-digit',minute:'2-digit'}); }
+function todayBills() { return bills.filter(b => b.date === today()); }
+
+// ========== NAV ==========
+function showPage(p) {
+  document.querySelectorAll('.page').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.nav-tabs button').forEach(x => x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  event.currentTarget.classList.add('active');
+  if(p==='inventory') renderInventory();
+  if(p==='udhaar') renderUdhaar();
+  if(p==='report') renderReport();
+  if(p==='sale') renderBills();
+}
+
+// ========== INVENTORY ==========
+function saveProduct() {
+  const name = document.getElementById('inv-name').value.trim();
+  const cat = document.getElementById('inv-cat').value;
+  const unit = document.getElementById('inv-unit').value;
+  const buy = parseFloat(document.getElementById('inv-buy').value) || 0;
+  const sell = parseFloat(document.getElementById('inv-sell').value) || 0;
+  const qty = parseFloat(document.getElementById('inv-qty').value) || 0;
+  if(!name) return alert('Product name required');
+  if(editProductId) {
+    const p = products.find(x=>x.id===editProductId);
+    Object.assign(p, {name,cat,unit,buy,sell,qty});
+    editProductId = null;
+  } else {
+    products.push({id:genId(),name,cat,unit,buy,sell,qty});
+  }
+  save(); clearInvForm(); renderInventory();
+}
+function clearInvForm() {
+  ['inv-name','inv-buy','inv-sell','inv-qty'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('inv-cat').value='Paint';
+  editProductId=null;
+}
+function editProduct(id) {
+  const p = products.find(x=>x.id===id);
+  document.getElementById('inv-name').value=p.name;
+  document.getElementById('inv-cat').value=p.cat;
+  document.getElementById('inv-unit').value=p.unit;
+  document.getElementById('inv-buy').value=p.buy;
+  document.getElementById('inv-sell').value=p.sell;
+  document.getElementById('inv-qty').value=p.qty;
+  editProductId=id;
+  document.getElementById('inv-name').focus();
+}
+function deleteProduct(id) {
+  if(!confirm('Delete this product?')) return;
+  products = products.filter(x=>x.id!==id);
+  save(); renderInventory();
+}
+function renderInventory(filter='') {
+  const list = filter ? products.filter(p=>p.name.toLowerCase().includes(filter.toLowerCase())) : products;
+  const tb = document.getElementById('inv-tbody');
+  const em = document.getElementById('inv-empty');
+  tb.innerHTML=''; em.style.display = list.length?'none':'block';
+  list.forEach((p,i)=>{
+    const low = p.qty <= 3;
+    tb.innerHTML += `<tr>
+      <td>${i+1}</td>
+      <td><strong>${p.name}</strong></td>
+      <td>${p.cat}</td>
+      <td>${p.unit}</td>
+      <td>Rs. ${p.buy}</td>
+      <td>Rs. ${p.sell}</td>
+      <td class="${low?'low':''}">${p.qty} ${low?'⚠️':''}</td>
+      <td><button class="btn btn-warning btn-sm" onclick="editProduct('${p.id}')">✏️</button>
+          <button class="btn btn-danger btn-sm" style="margin-left:4px" onclick="deleteProduct('${p.id}')">🗑️</button></td>
+    </tr>`;
+  });
+}
+function filterInventory(v) { renderInventory(v); }
+
+// ========== SALE ==========
+function searchProducts(q) {
+  const dd = document.getElementById('prod-dropdown');
+  if(!q) { dd.style.display='none'; return; }
+  const res = products.filter(p=>p.name.toLowerCase().includes(q.toLowerCase()));
+  if(!res.length) { dd.style.display='none'; return; }
+  dd.innerHTML = res.map(p=>`<div onclick="addToCart('${p.id}')" style="padding:10px 14px;cursor:pointer;border-bottom:1px solid #f0f2f5;font-size:13px" onmouseenter="this.style.background='#fef9f9'" onmouseleave="this.style.background=''">
+    <strong>${p.name}</strong> <span style="color:#888">${p.cat}</span>
+    <span style="float:right;color:#e94560;font-weight:700">Rs. ${p.sell}</span>
+  </div>`).join('');
+  dd.style.display='block';
+}
+function addToCart(id) {
+  const p = products.find(x=>x.id===id);
+  if(!p) return;
+  const existing = saleCart.find(x=>x.id===id);
+  if(existing) { existing.qty++; }
+  else { saleCart.push({...p, qty:1}); }
+  document.getElementById('prod-search').value='';
+  document.getElementById('prod-dropdown').style.display='none';
+  renderCart();
+}
+function changeQty(id, delta) {
+  const item = saleCart.find(x=>x.id===id);
+  if(!item) return;
+  item.qty += delta;
+  if(item.qty <= 0) saleCart = saleCart.filter(x=>x.id!==id);
+  renderCart();
+}
+function removeFromCart(id) { saleCart = saleCart.filter(x=>x.id!==id); renderCart(); }
+function renderCart() {
+  const tb = document.getElementById('sale-tbody');
+  const em = document.getElementById('empty-msg');
+  tb.innerHTML=''; em.style.display = saleCart.length?'none':'block';
+  let total=0;
+  saleCart.forEach(item=>{
+    const sub = item.sell * item.qty;
+    total += sub;
+    tb.innerHTML += `<tr>
+      <td>${item.name}</td>
+      <td><div class="qty-ctrl">
+        <button onclick="changeQty('${item.id}',-1)">−</button>
+        <span>${item.qty}</span>
+        <button onclick="changeQty('${item.id}',1)">+</button>
+      </div></td>
+      <td>Rs. ${item.sell}</td>
+      <td><strong>Rs. ${sub}</strong></td>
+      <td><button class="btn btn-danger btn-sm" onclick="removeFromCart('${item.id}')">✕</button></td>
+    </tr>`;
+  });
+  document.getElementById('grand-total').textContent = total;
+}
+function clearSale() { saleCart=[]; renderCart(); }
+function openCheckout() {
+  if(!saleCart.length) return alert('Add items first');
+  const total = saleCart.reduce((s,i)=>s+i.sell*i.qty,0);
+  document.getElementById('ck-total').textContent = total;
+  document.getElementById('ck-name').value='';
+  document.getElementById('ck-phone').value='';
+  document.getElementById('checkout-modal').classList.add('open');
+}
+function completeSale(saveOnly) {
+  const name = document.getElementById('ck-name').value.trim() || 'Walk-in';
+  const phone = document.getElementById('ck-phone').value.trim();
+  const type = document.getElementById('ck-type').value;
+  const total = saleCart.reduce((s,i)=>s+i.sell*i.qty,0);
+  const profit = saleCart.reduce((s,i)=>s+(i.sell-i.buy)*i.qty,0);
+  const billNo = 'AW-'+String(bills.length+1).padStart(4,'0');
+  const bill = { id:genId(), no:billNo, customer:name, phone, type, items:[...saleCart], total, profit, date:today(), time:now() };
+  bills.push(bill);
+  // Deduct stock
+  saleCart.forEach(item=>{ const p=products.find(x=>x.id===item.id); if(p) p.qty -= item.qty; });
+  // If udhaar, add to ledger
+  if(type==='Udhaar') {
+    let ud = udhaarList.find(x=>x.name===name && x.phone===phone);
+    if(!ud) { ud={id:genId(),name,phone,entries:[],totalDue:0}; udhaarList.push(ud); }
+    ud.entries.push({date:today(),note:`Bill ${billNo}`,amount:total,paid:false});
+    ud.totalDue += total;
+  }
+  save(); closeModal('checkout-modal');
+  if(!saveOnly) printBill(bill);
+  clearSale(); renderBills();
+  alert(`✅ Sale saved! Bill: ${billNo}`);
+}
+function renderBills() {
+  const tb = document.getElementById('bills-tbody');
+  const em = document.getElementById('bills-empty');
+  const list = todayBills().reverse();
+  tb.innerHTML=''; em.style.display = list.length?'none':'block';
+  list.forEach(b=>{
+    const badge = b.type==='Cash'?'badge-green':b.type==='Udhaar'?'badge-red':'badge-orange';
+    tb.innerHTML+=`<tr>
+      <td>${b.no}</td>
+      <td>${b.customer}</td>
+      <td><strong>Rs. ${b.total}</strong></td>
+      <td><span class="badge ${badge}">${b.type}</span></td>
+      <td><button class="btn btn-outline btn-sm" onclick="printBill(${JSON.stringify(b).replace(/"/g,'&quot;')})">🖨️</button></td>
+    </tr>`;
+  });
+}
+
+// ========== PRINT ==========
+function printBill(bill) {
+  const lines = bill.items.map(i=>`
+    <div style="display:flex;justify-content:space-between"><span>${i.name} x${i.qty}</span><span>Rs.${i.sell*i.qty}</span></div>`).join('');
+  document.getElementById('print-area').innerHTML = `
+    <div style="font-family:monospace;width:78mm;padding:4mm">
+      <div style="text-align:center;font-weight:bold;font-size:15px">AL WAHID PAINT SHOP</div>
+      <div style="text-align:center;font-size:11px">Zail Pak Colony, Gate Shop #3, Hyderabad</div>
+      <div style="text-align:center;font-size:11px">📞 Contact for Paint Solutions</div>
+      <hr style="border:1px dashed #000;margin:6px 0">
+      <div style="font-size:11px">Bill#: ${bill.no} | Date: ${bill.date} ${bill.time}</div>
+      <div style="font-size:11px">Customer: ${bill.customer}</div>
+      <hr style="border:1px dashed #000;margin:6px 0">
+      <div style="font-size:12px">${lines}</div>
+      <hr style="border:1px dashed #000;margin:6px 0">
+      <div style="display:flex;justify-content:space-between;font-weight:bold;font-size:13px">
+        <span>TOTAL</span><span>Rs. ${bill.total}</span>
+      </div>
+      <div style="font-size:11px">Payment: ${bill.type}</div>
+      <hr style="border:1px dashed #000;margin:6px 0">
+      <div style="text-align:center;font-size:11px">شکریہ! دوبارہ تشریف لائیں</div>
+    </div>`;
+  document.getElementById('print-area').style.display='block';
+  window.print();
+  document.getElementById('print-area').style.display='none';
+}
+
+// ========== UDHAAR ==========
+function addUdhaar() {
+  const name = document.getElementById('ud-name').value.trim();
+  const phone = document.getElementById('ud-phone').value.trim();
+  const amt = parseFloat(document.getElementById('ud-amt').value) || 0;
+  const note = document.getElementById('ud-note').value.trim();
+  if(!name || !amt) return alert('Name and amount required');
+  let ud = udhaarList.find(x=>x.name===name);
+  if(!ud) { ud={id:genId(),name,phone,entries:[],totalDue:0}; udhaarList.push(ud); }
+  ud.entries.push({date:today(),note:note||'Manual entry',amount:amt,paid:false});
+  ud.totalDue += amt;
+  save(); clearUdForm(); renderUdhaar();
+}
+function clearUdForm() { ['ud-name','ud-phone','ud-amt','ud-note'].forEach(id=>document.getElementById(id).value=''); }
+function renderUdhaar() {
+  const tb = document.getElementById('ud-tbody');
+  const em = document.getElementById('ud-empty');
+  tb.innerHTML=''; em.style.display = udhaarList.length?'none':'block';
+  let total=0, count=0;
+  udhaarList.forEach((ud,i)=>{
+    if(ud.totalDue<=0) return;
+    count++;
+    total += ud.totalDue;
+    const last = ud.entries.length ? ud.entries[ud.entries.length-1].date : '-';
+    tb.innerHTML+=`<tr>
+      <td>${i+1}</td>
+      <td><strong>${ud.name}</strong></td>
+      <td>${ud.phone||'-'}</td>
+      <td style="color:#e74c3c;font-weight:700">Rs. ${ud.totalDue}</td>
+      <td>${last}</td>
+      <td>
+        <button class="btn btn-warning btn-sm" onclick="openUdhaarDetail('${ud.id}')">📋 Detail</button>
+      </td>
+    </tr>`;
+  });
+  document.getElementById('ud-total-customers').textContent = count;
+  document.getElementById('ud-total-due').textContent = 'Rs. '+total;
+}
+function openUdhaarDetail(id) {
+  activeUdhaarId = id;
+  const ud = udhaarList.find(x=>x.id===id);
+  document.getElementById('ud-detail-name').textContent = ud.name + ' — Ledger';
+  document.getElementById('ud-detail-due').textContent = 'Rs. '+ud.totalDue;
+  const tb = document.getElementById('ud-detail-tbody');
+  tb.innerHTML = ud.entries.map(e=>`<tr>
+    <td>${e.date}</td><td>${e.note}</td>
+    <td>Rs. ${e.amount}</td>
+    <td><span class="badge ${e.paid?'badge-green':'badge-red'}">${e.paid?'Paid':'Due'}</span></td>
+  </tr>`).join('');
+  document.getElementById('ud-detail-modal').classList.add('open');
+}
+function recordPayment() {
+  const amt = parseFloat(document.getElementById('ud-pay-amt').value) || 0;
+  if(!amt) return alert('Enter payment amount');
+  const ud = udhaarList.find(x=>x.id===activeUdhaarId);
+  ud.entries.push({date:today(),note:`Payment received`,amount:-amt,paid:true});
+  ud.totalDue = Math.max(0, ud.totalDue - amt);
+  save(); closeModal('ud-detail-modal'); renderUdhaar();
+}
+
+// ========== REPORT ==========
+function renderReport() {
+  const list = todayBills();
+  const total = list.reduce((s,b)=>s+b.total,0);
+  const profit = list.reduce((s,b)=>s+b.profit,0);
+  document.getElementById('r-today-sales').textContent = 'Rs. '+total;
+  document.getElementById('r-today-bills').textContent = list.length;
+  document.getElementById('r-total-profit').textContent = 'Rs. '+Math.round(profit);
+  const tb = document.getElementById('rep-tbody');
+  const em = document.getElementById('rep-empty');
+  tb.innerHTML=''; em.style.display = list.length?'none':'block';
+  list.reverse().forEach(b=>{
+    const badge = b.type==='Cash'?'badge-green':b.type==='Udhaar'?'badge-red':'badge-orange';
+    tb.innerHTML+=`<tr>
+      <td>${b.time}</td><td>${b.no}</td><td>${b.customer}</td>
+      <td>${b.items.length} items</td>
+      <td><strong>Rs. ${b.total}</strong></td>
+      <td><span class="badge ${badge}">${b.type}</span></td>
+    </tr>`;
+  });
+  // Low stock
+  const low = products.filter(p=>p.qty<=3);
+  const ltb = document.getElementById('low-stock-tbody');
+  const lem = document.getElementById('low-empty');
+  ltb.innerHTML=''; lem.style.display = low.length?'none':'block';
+  low.forEach(p=>{
+    ltb.innerHTML+=`<tr><td>${p.name}</td><td>${p.cat}</td><td class="low">${p.qty} ${p.unit}</td></tr>`;
+  });
+}
+
+// ========== MODAL ==========
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+window.onclick = e => { if(e.target.classList.contains('modal-overlay')) e.target.classList.remove('open'); }
+
+// ========== INIT ==========
+renderBills();
+</script>
+</body>
+</html>
